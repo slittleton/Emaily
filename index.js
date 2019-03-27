@@ -11,7 +11,7 @@ const app = express();
 //route handler example
 // other default handlers in express: get, post, put, delete, patch
 app.get('/', (req, res) => { // the '/' tells express to watch for requests to this route
-  res.send({hi: 'there'});
+  res.send({hello: 'there'});
 })
 
 

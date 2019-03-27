@@ -42,7 +42,7 @@ specify start script in package.json
 replace 
 "test": "echo \"Error: no test specified\" && exit 1"
 
-with    
+with
 "start": "node index.js"
 
 create gitignore so that node dependencies aren't sent to heroku,
@@ -55,4 +55,41 @@ node_modules
 
 this will ignore all files in the node modules folder
 
+-------- in terminal --------
+
+git init
+git add .
+git commit -m "comment"
+
+make sure heroku CLI is installed (if not download installer - 
+search for heroku CLI on google)
+
+heroku --version
+heroku login
+heroku create
+
+you should see two links, the first identifies the name of your app
+to heroku, the second link is the deployment target. The deployment
+target is a git repository we can push our local server to. When you
+push your project to this repository, heroku will start it up automatically
+
+git remote add heroku "link that you want to use"
+
+example of what link looks like:
+https://git.heroku.com/thawing-citadel-84114.git
+
+git push heroku master
+
+heroku open
+
+// opens your project in a new browser window
+// example of how the link to the project will look
+https://thawing-citadel-84114.herokuapp.com/
+
+
+deployment in the future
+
 ===============================================================
+
+
+
