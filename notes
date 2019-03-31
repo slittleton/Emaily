@@ -1,6 +1,10 @@
 ===================== Express =====================
 
 const express = require('express');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const keys = require('./config/keys');
+
 
 /* 
 Most projects only use one app object(but they can use more)
@@ -10,22 +14,57 @@ those requests to different route handlers
 */
 const app = express();
 
-//route handler example
-// other default handlers in express: get, post, put, delete, patch
-app.get('/', (req, res) => { // the '/' tells express to watch for requests to this route
-  res.send({hi: 'there'});
-})
 
-// Environment Variables - set in underlying runtime that node runs
-// on top of
+passport.use( // takes two arguments, object with client info and callbackURL, accesstoken
+  new GoogleStrategy(
+    {
+      clientID: keys.googleClientID,
+      clientSecret: keys.googleClientSecret,
+      callbackURL: '/auth/google/callback'
+    },
+  (accessToken, refreshToken, profile, done) => { // this function is the callback 
+    //that handles the info delivered by google to our server 
+    console.log('accessToken: ', accessToken);
+    console.log('refresh token: ', refreshToken);
+    console.log('profile: ', profile)
+  })
+);
+
+// Route Handler
+// oauth flow managed by passport
+// 'google' was given to us by stuff done in the background with passportjs, 
+// thats why you never see it declared as and related back to new GoogleStrategy
+// passportjs sees 'google' and automatically associates that with new GoogleStrategy 
+// internally
+// the second argument is an options object. scope specifys the type of access we want
+// in this case we want access to the users profile and their email (other scopes listed in documentation)
+app.get(
+  '/auth/google',
+  passport.authenticate("google", {
+    scope: ["profile","email"] 
+  })
+);
+
+// Route Handler
+// visiting localhost:5000/auth/google will get profile from google and
+// redirect to localhost:5000/auth/google/callback
+// additonally there will be extra info in the returned url
+// localhost:5000/auth/google/callback?code=bunch of random looking stuff
+// this returned code is  turned into a profile by passportjs
+app.get('/auth/google/callback', passport.authenticate('google'))
+
+
 // look at underlying enviroment and check to see if it has
 // a specific port it wants us to use - only works in production
 // can include || that runs in development environment
 // 5000 here refers to http://localhost:5000/
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5000;
 
 // listen to port
-app.listen(PORT); // run from terminal with: node index.js
+app.listen(PORT, () => console.log('listening')); // run from terminal with: node index.js
+
+
+
 
 ===============================================================
 
@@ -89,7 +128,152 @@ https://thawing-citadel-84114.herokuapp.com/
 
 deployment in the future
 
+git status
+git add .
+git commit -m "changed greeting"
+git push heroku master
+heroku logs  // checks to see if anything went wrong - not a necessary step
+heroku open
+
 ===============================================================
 
+===================== Passport JS =====================
+install passport js and a passport strategy
+oauth20 is abbreviated for oauth2.0 (can't use . with npm)
+the strategy instructs passport on how you want to authenticate the
+user, we are using google but you can use facebook, twitter, etc
 
+    npm install passport-google-oauth20@2 --save
+
+
+
+Since the main goal of using http://localhost:5000/* was to show the redirect 
+error a few lectures later,  we can do one of two things here:
+
+1. Leave the authorized URI Redirect blank, since we will be fixing
+ this later.
+
+2. Enter http://localhost:5000/auth/google/callback now, since 
+that is what it will be changed to in a later lecture.
+
+===============================================================
+===================== Google OAuth =====================
+go to google to create oauth project 
+
+console.developers.google.com
+
+change to the newly created project
+click credentials and create client id
+
+Authorized JavaScript origins
+http://localhost:5000/
+
+Authorized redirect URIs
+http://localhost:5000/auth/google/callback
+
+you will then get a client id that looks like this:
+711429008072-dlmio7cfm7ncqu28sg8j4ngivnii813h.apps.googleusercontent.com
+
+and you will get a client secret
+
+the client id identifies the application (public token). The client secret should
+be kept private because it grants extra privileges (private token)
+
+before pushing to github you will need to "hide" your client secret
+
+make a config folder with keys.js file. put your client id and client secret in a module.exports object
+
+module.exports = {
+  googleClientId: 'CLIENT ID GOES HERE',
+  googleClientSecret: 'CLIENT SECRET GOES HERE'
+};
+
+this allows you to export this info into other files.
+Add keys.js to gitignore file do it doesn't get pushed to github
+
+
+===============================================================
+===================== Nodemon =====================
+nodemon monitors for updates and displays in console
+makes it so you don't have to restart server ever time you make a change
+to your code
+
+npm install --save nodemon
+
+
+add script in package.json 
+
+"dev": "nodemon index.js"
+
+use by running: npm run dev
+
+===============================================================
+===================== MongoDB =====================
+
+database made up of collections. example: users collection, payments collection, etc
+
+within each collection each object can have the same or different properties. this
+contrasts sql databases where each object in the collection would have to have
+the same properties.
+
+example of USERS Collection:
+{ id: 1, name "anna" }, { id:2, name: "alex", age: 30 }, { id:3, weight: 170 }
+
+======== Mongoose ========
+mongoose js is a library that helps deal with MongoDB. It has a group of functions
+called a -- Model Class -- that helps deal with a specific mongoDB collection. These 
+functions may create new records, search records, etc.
+a -- Model Instance -- is a group of functions that deal with a specific object
+inside the collection
+
+SRV connection String for this project
+mongodb+srv://admin:<password>@emaily-zqhbm.mongodb.net/test?retryWrites=true
+
+you have to replace <password> with the database users password.
+
+mongoose requires that you define all the properties in your data records. 
+This contrasts with mongoDB since mongoDB doesn't care if an object has 
+different properties than another in a collection. Mongoose uses the term Schema
+for this. A Schema is an object with all the properties and types you intend to
+use for a collection.
+
+const mongoose = require('mongoose');
+const { Schema } = mongoose;
+
+// set up list properties and types you will use with mongoose on a collection 
+const userSchema = new Schema({
+  googleId: String
+});
+
+// tell mongoose to create a new collection called users
+// using two arguments here LOADS a SCHEMA into mongoose.
+// using a single argument FETCHES a SCHEMA from mongoose.
+mongoose.model('users', userSchema);
+
+
+in passport.js require mongoose and the schema you want. You do this because
+if you require mongoose and a schema in the index.js file it is possible that
+mongoose can have an error during testing where it trys to require a schema 
+in the same file multiple times it then conflicts saying you have multiple of 
+the same schema and produces errors. To avoid this  require mongoose in 
+the passport.js file.
+
+const mongoose = require('mongoose');
+
+//fetch schema from mongoose 
+const User = mongoose.model('users');
+
+
+// You can create a new Model Instance object in the Model Class Users so 
+// it is available to save it to the database. the .save() function 
+// persists the Model Instance to the database
+// this is done in this app in passport.js in the callback function after 
+// the googleStrategy in passport.use()
+
+new User({ googleId: profile.Id }).save();
+
+
+
+
+===============================================================
 
