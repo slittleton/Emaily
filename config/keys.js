@@ -5,7 +5,7 @@ if (process.env.NODE_ENV === 'production') {
 
   // get keys from dev.js and set them to be exported
   // so that other files can import from keys.js and get access to them
-  module.exports = require('/prod');
+  module.exports = require('./prod');
 
 
 } else {
