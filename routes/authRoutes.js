@@ -25,7 +25,23 @@ module.exports = (app) => {
   // additonally there will be extra info in the returned url
   // localhost:5000/auth/google/callback?code=bunch of random looking stuff
   // this returned code is  turned into a profile by passportjs
-  app.get('/auth/google/callback', passport.authenticate('google'))
+  app.get('/auth/google/callback', passport.authenticate('google'));
+
+  // Route Handler
+  // if logged in user makes get request to api/logout then the server will 
+  // logout the user
+  app.get('/api/logout', (req, res) => {
+    req.logOut(); // logout is a function automatically attached to req object by passport
+    res.send("logged out"); // returns a response to user of no content or undefined
+  });
+
+  //Route Handler
+  // test to see if someone who logged in now has access as that user
+  // to check if it worked, log in and go to http://localhost:5000/api/current_user
+  app.get('/api/current_user', (req, res) => {
+    res.send(req.user);
+  });
+
 }
 
 
