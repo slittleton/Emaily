@@ -401,3 +401,5 @@ to work properly in production. You will need to put in the keys as config vars 
 in the settings area for your app.
 make sure to change the MONGO_URI to the user and password you set up for the 
 production database
+
+push changes to heroku before launching
