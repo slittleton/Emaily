@@ -203,9 +203,9 @@ npm install --save nodemon
 
 add script in package.json 
 
-"dev": "nodemon index.js"
+"server": "nodemon index.js"
 
-use by running: npm run dev
+use by running: npm run server
 
 ===============================================================
 ===================== MongoDB =====================
@@ -403,3 +403,91 @@ make sure to change the MONGO_URI to the user and password you set up for the
 production database
 
 push changes to heroku before launching
+
+
+===============================================================
+===================== Stripe on Server =====================
+
+npm install --save stripe
+
+
+when you make requests to an express server, express does not automatically 
+parse the payload sent to it. To do this we will install another module that
+tells express how to parse the info and make it available to the rest of the 
+application
+
+===== body-parser =====
+
+npm install --save body-parser
+
+this is an express middleware so you have to wire it up to express with  
+app.use() 
+
+----index.js
+
+const bodyParser = require('body-parser');
+
+app.use(bodyParser.json());
+
+===============================================================
+===================== Handle Additonal Routes=====================
+3 types of routes that our express server handles
+1) routes specifically meant for express to handlers
+
+2) routes not recognized by express where express needs to be told to get a specific
+   file from client side (such as the /client/build/static/js/main.js file).
+   In our index.js file express is told to check with client side first to 
+   find a specific file. If this fails then express is told to use the index.html 
+   file from the client. In other words, assime thats probably the file that can 
+   reconcile the correct path. 
+   Check to see if 'client/build' js file is needed. If not proceed to next step
+
+3) routes not recognized by our backend - we will tell express that
+   when this happens it should get the index.html file from client side of
+   application to look for routes in there. In other words tell express to 
+   assume the index.html file will have the correct route. 
+
+
+---- index.js (server)
+if(process.env.NODE_ENV === 'production'){
+  // Express will serve up production assets
+  // like our main.js file, or main.css file!
+    app.use(express.static('client/build'));
+
+  // Express will serve up the index.html file
+  // if it doesn't recognize the route
+  const path = require('path');
+  app.get('*', (req,res) => {
+    res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'))
+  })
+
+}
+
+===============================================================
+===================== Build and Deployment =====================
+you need to build your client side of the project before you can deploy it.
+
+npm run build
+
+3 options to deploy
+
+1) we build the project and push it to heroku. We will need to build the project
+  and push it ever time we make a change to the code
+
+2) push everything to heroku and tell heroku to install all dependencies for 
+   client side of project. The dependencies will only ever be used once.
+
+3) Continuous integration
+   third party server builds application. commit everything to git and push it 
+   all to a server. the server can run tests on these files and then build the project 
+   as a seperate branch and then push that build to heroku
+
+
+we will be using option 2
+
+-commit all files to git
+-push to heroku
+-heroku installs all server dependencies
+-heroku runs script called 'heroku-posbuild' which can contain additional 
+ instructions for heroku on how to set up and run our application
+-

@@ -3,12 +3,14 @@ const mongoose = require('mongoose');
 const keys = require ('./config/keys');
 const cookieSession = require('cookie-session');
 const passport = require('passport');
+const bodyParser = require('body-parser');
 // make sure to require files that need to be run in location where file 
 // will be run from otherwise that file will not be executed.
 require('./models/User');
 require('./services/passport');
 
 const authRoutes = require('./routes/authRoutes');
+const billingRoutes = require('./routes/billingRoutes');
 
 // connect mongoose to mongoDB database
 mongoose.connect(keys.mongoURI);
@@ -21,6 +23,7 @@ those requests to different route handlers
 */
 const app = express();
 
+app.use(bodyParser.json());
 // make sure passport is aware it needs to use cookies to keep track of the
 // signed in user. cookie-session library must be installed for this purpose
 app.use(
@@ -35,6 +38,22 @@ app.use(passport.session());
 
 
 authRoutes(app);
+billingRoutes(app);
+
+if(process.env.NODE_ENV === 'production'){
+  // Express will serve up production assets
+  // like our main.js file, or main.css file!
+    app.use(express.static('client/build'));
+
+  // Express will serve up the index.html file
+  // if it doesn't recognize the route
+  const path = require('path');
+  app.get('*', (req,res) => {
+    res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'))
+  })
+
+}
+
 
 // look at underlying enviroment and check to see if it has
 // a specific port it wants us to use - only works in production

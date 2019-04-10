@@ -25,14 +25,22 @@ module.exports = (app) => {
   // additonally there will be extra info in the returned url
   // localhost:5000/auth/google/callback?code=bunch of random looking stuff
   // this returned code is  turned into a profile by passportjs
-  app.get('/auth/google/callback', passport.authenticate('google'));
+  app.get(
+    '/auth/google/callback', 
+    passport.authenticate('google'), //passport middleware takes over after oauth
+    (req, res) => { //request passed on to a function that handles the request
+      res.redirect('/surveys'); // redirect is a function that tells the browser
+      // that it needs to go to the route '/surveys' instead of /auth/google/callback
+    }
+    
+    );
 
   // Route Handler
   // if logged in user makes get request to api/logout then the server will 
   // logout the user
   app.get('/api/logout', (req, res) => {
     req.logOut(); // logout is a function automatically attached to req object by passport
-    res.send("logged out"); // returns a response to user of no content or undefined
+    res.redirect("/"); 
   });
 
   //Route Handler

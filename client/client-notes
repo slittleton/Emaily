@@ -1,0 +1,202 @@
+
+In Dev Mode
+React has its own server. We are also using an express server that we made.
+This means there are two servers in this project. The express server gets data from
+our mongoDB database (basically json data). The React server delivers react components as 
+javascript files. You can use express for react and the database management but using
+two servers saves a lot of time because create react app comes  with a lot of tools
+so that you don't have to configure a ton of extra stuff. 
+
+In production the create react app server does not exist. 
+
+Prod Mode
+when we tell create react app to build our project it will use webpack and babel and 
+other applications and save a final production build of our application into the 
+public folder. The build is a js file that will get sent to the person attempting to 
+access our application. The express server will be the only server and it will server 
+the js files created in the react build.
+
+This is the main reason we wanted to stick with relative routes in react. In production 
+the browser will prepend on the current domain to the local route. I dev mode 
+the proxy is needed to prepend the localhost domain onto the local route /auth/google. In 
+production the proxy will not exist and the browser will take whatever web address
+we have specified by deploying through heroku and prepend it in front of /auth/google.
+
+
+
+===================== Running Two Servers =====================
+
+getting both the react and express servers to run at the same time using concurrently
+
+there are two package.json files for this project, one is in the server directory and the 
+other is in the client directory.
+
+package.json (server)
+
+  "scripts": {
+    "start": "node index.js",
+    "server": "nodemon index.js",
+    "client": "npm run start --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+
+  --prefix client 
+
+  tells the application to run the "npm run start" command from within 
+  the client directory.
+
+----- install concurrently module
+
+npm install --save concurrently
+
+concurrently executes multiple commands at the same time. so when you enter the command
+
+npm run dev 
+
+it will run the server for express and the server for react at the same time.
+
+react will be running on localhost:3000
+express will be running on localhost:5000
+
+
+============== Proxy issue with Create React App 2.0 =================
+1) fix with the following command
+
+npm install http-proxy-middleware --save
+
+2) Create setupProxy.js file in client/src/ directory. There is no need to 
+import this file anywhere, CRA looks for a file by this name and loads it.
+
+3) Add proxies to the setupProxy.js file
+
+const proxy = require('http-proxy-middleware')
+     
+    module.exports = function(app) {
+        app.use(proxy(['/api', '/auth/google'], { target: 'http://localhost:5000' }));
+    }
+
+
+this will set the path when you use a link so that you don't have to specify localhost 
+inside the anchor tag. You only have to put the relative path in anchor tag
+
+<a href="/auth/google">Sign In With Google</a>
+
+
+============== React Dependencies ============== 
+   make sure react dependencies are installed
+
+   npm install --save redux react-redux react-router-dom
+
+   
+
+============== CSS ==============
+   if you import a css file into your root index.js then that css will be available
+   to all your components. In this project we installed materializeCSS
+
+   npm install materialize-css@next
+
+   and we imported it into our root index.js 
+
+   import 'materialize-css/dist/css/materialize.min.css';
+
+============== Axios ==============
+ install into client directory
+
+npm install --save axios
+
+============== Redux Thunk ==============
+ install into client directory
+
+npm install --save redux-thunk
+
+allows an action creator to call an action that is a function. If an action is a 
+js object containing an action.type and optionally an action.payload then it will work normally and 
+the action will be dispatched to the reducers. If the action is a functions, thunk will 
+intercept it and run the function and then check to see if a normal action is returned 
+which it will then allow to be dispatched like a normal action. Basically the dispatch 
+function has been modified so that you can have more control over it.
+
+if redux-thunk sees that an action that returns a function, redux thunk will call the 
+function and pass in the dispatch function to it. You can call the dispatch after
+your function does whatever you wanted it to do.
+
+example using promises
+
+const fetchUser = () =>  { //action returns a function
+
+  return function(dispatch){ 
+    //redux-thunk sees a function is returned and automatically makes dispatch available
+    // so you can use it as a callback
+    axios
+      .get('/api/current_user')
+      .then(res=> dispatch({type: FETCH_USER, payload: res})) 
+      // dispatch is called to send action.type and action.payload to reducers after
+      // an async call to the server was made and data was retrieved
+  }
+}
+
+
+example using async await 
+
+export const fetchUser = () =>  async dispatch => { //fetch user returns a function
+  // the returned function takes in dispatch (from thunk) and makes an async get request
+  // using axios. 
+  const res = await axios.get('/api/current_user')
+
+  //Once the data is received it is then dispatched
+  dispatch({type: FETCH_USER, payload: res.data}) 
+
+};
+
+============== Connect Function ==============
+connect passes actions into the component as props using the context system in react.
+
+if you use mapStateToProps connect function will take mapStateToProps and pass 
+the store into mapStateToProps as the state parameter
+
+import * as actions from '../actions';
+
+export default connect(mapStateToProps, actions)(ComponentName)
+
+============== Stripe ==============
+creditcard form is automatically generated by Stripe. This will 
+keep you from directly obtaining a users credit card number.
+
+stripe checkout.js ----- js library for stripe - more difficult to use 
+because its a general library and not built specifically for react.
+
+react-stripe-checkout - js library for stripe with react
+
+
+npm install --save react-stripe-checkout
+
+this library allows you to make a button that will create a pop-up window 
+when it is clicked that will connect the user to stripe.
+
+============== Font End API Keys ==============
+import statements used with ES2015 in react don't allow you to execute code 
+before the import statement. require with module.export does allow you to 
+execute code before it is executed. 
+So you have to use a different strategy to hide your api keys on the front end.
+
+adding custom environment variables to react
+
+define stripe api keys as environment variables as constants
+must begin with:
+
+REACT_APP_
+
+must be defined on process.environment
+ex:
+process.env.REACT_APP_SECRET_CODE
+
+you can define these variables in the shell but this will require a different 
+method for each operating system. So we will instead be creating .env files in
+client directory. Add to gitignore file to prevent from being uploaded to github
+
+
+.env.development
+
+.env.production
+
+============== ==============
