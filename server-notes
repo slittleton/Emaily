@@ -482,6 +482,9 @@ npm run build
    all to a server. the server can run tests on these files and then build the project 
    as a seperate branch and then push that build to heroku
 
+make sure to add a script in server package.json to tell heroku to build client side of app
+
+"heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix client && npm run build --prefix client" 
 
 we will be using option 2
 
@@ -490,4 +493,3 @@ we will be using option 2
 -heroku installs all server dependencies
 -heroku runs script called 'heroku-posbuild' which can contain additional 
  instructions for heroku on how to set up and run our application
--
