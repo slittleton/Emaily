@@ -7,8 +7,10 @@ const bodyParser = require('body-parser');
 // make sure to require files that need to be run in location where file 
 // will be run from otherwise that file will not be executed.
 require('./models/User');
+require('./models/Survey');
 require('./services/passport');
 
+const surveyRoutes = require('./routes/surveyRoutes');
 const authRoutes = require('./routes/authRoutes');
 const billingRoutes = require('./routes/billingRoutes');
 
@@ -39,6 +41,7 @@ app.use(passport.session());
 
 authRoutes(app);
 billingRoutes(app);
+surveyRoutes(app);
 
 if(process.env.NODE_ENV === 'production'){
   // Express will serve up production assets

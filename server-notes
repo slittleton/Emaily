@@ -493,3 +493,86 @@ we will be using option 2
 -heroku installs all server dependencies
 -heroku runs script called 'heroku-posbuild' which can contain additional 
  instructions for heroku on how to set up and run our application
+
+git status
+git add .
+git commit -m "comment"
+git push heroku master
+heroku logs
+heroku open
+===============================================================
+===================== SubDocument Collection =====================
+in a collection you can have something called a subDocument collection. For 
+this project we have a collection of surveys. The survey is based on a schema from 
+mongoose (surveySchema). Inside the surveySchema we have a property that is 
+an array made up of a set of another type schema. In this case recipients
+
+---- Survey.js
+
+const recipientSchema = require('./Recipient');
+
+const surveySchema = new Schema({
+  title: String,
+  body: String,
+  subject: String,
+  recipients: [RecipientSchema],
+  yes: { type: Number, default: 0 },
+  no: { type: Number, default: 0 }
+});
+
+this was done because of the potential of a large number of recipients. If we 
+tried to associate our surveys as a subdocument collection of users, then each 
+user would have multiple surverys. Each survey is sent out to potentially thousands
+of recipients. MongoDB caps the amount of data alloted for a record at 4mb. If all 
+the surveys were assigned as a subdocument under the user collection and the recipients 
+were assigned under the surveys we would quickly run into a situation where the 
+size of the record would be maxed out. Making a collection where each survey has a subdocumnet 
+of recipients allows the user to have thousands of surveys and each survey to have thousands of 
+recipients without the issue of a size limit on the record.
+
+
+===================== Webhook with Mass Emails =====================
+to send emails we are using sendgrid.com
+
+when a link is included inside the email template we want sent to a set of 
+email address sendgrid keeps track of those links. When clicked sendgrid 
+collects info about the link the user wants to visit before sending the user 
+to that destination. When this happens each link is customized for the user, so 
+sendgrid knows who clicked the link. Sendgrid will send our server a message with 
+info(email address) about the user that clicked on the link. This is called a webhook.
+
+make sure to install the sendgrid module
+
+npm install --save sendgrid
+
+===============================================================
+===================== REST Client (Testing Email) =====================
+application that allows you to make api request to any arbitrary endpoint from 
+any given server.
+
+example: postman
+
+this is complicated because we are using oauth
+
+we will be instead testing the backend email portion with the axios module
+
+we will then use the axios module to make a post request to our backend server 
+from our react app manually
+to do this we import axios into the client and make a post request in the 
+browser console.
+
+--- index.js (client)
+import axios from 'axios';
+window.axios = axios;
+
+---react app console
+const survey = { title: 'my title', subject: 'my subject', recipients: 'emailyouwanttotestwith@email.com', body: 'this is the email body' }
+
+axios.post('/api/surveys', survey);
+
+delete the axios stuff in the react index.js file after testing
+import axios from 'axios'; //delete
+window.axios = axios; //delete
+===============================================================
+===================== =====================
+
