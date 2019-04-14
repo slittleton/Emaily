@@ -574,5 +574,62 @@ delete the axios stuff in the react index.js file after testing
 import axios from 'axios'; //delete
 window.axios = axios; //delete
 ===============================================================
-===================== =====================
+===================== LocalTunnel =====================
+online api service to handle webhooks for development purposes. 
 
+you can set it to tell the emailer you are using (sendgrid in our case) to send 
+a response email to the local server on your computer during development
+
+npm install --save localtunnel
+
+----in the root dir of the server create a new file called sendgrid_webhook.js .  
+Add the following to that file:
+
+    var localtunnel = require('localtunnel');
+    localtunnel(5000, { subdomain: <YOUR_SUBDOMAIN> }, function(err, tunnel) {
+      console.log('LT running')
+    });
+
+
+add start up script in package.json 
+
+with specified port 5000, and special subdomain that you define "asxcnvwuwbc234543"
+
+--- server package.json
+"webhook": "forever sendgrid_webhook.js" 
+
+also make sure you added it to start up along with the server and client
+
+"dev": "concurrently \"npm run server\" \"npm run client\" \"npm run webhook\"",
+
+when you do npm run dev and start up the dev server you also need to go to
+your emailer service (sendgrid.com) 
+
+---sendgrid.com
+go to settings 
+mail settings
+event notification
+
+add in your custom localTunnel http address (you can find it in the terminal 
+while your dev server is running). You then add the route you want sendgrid to send 
+the information to through the local tunnel
+
+subdomain example: https://asxcnvwuwbc234543.localtunnel.me
+route: /api/surveys/webhooks
+
+combine them and paste into
+
+HTTP Post Url
+https://asxcnvwuwbc234543.localtunnel.me/api/surveys/webhooks
+
+you van then click "test your integration" to test 
+
+check off the "clicked" box because we want to know when people click our links from 
+the emails that people receive from sendgrid.
+
+
+WHEN YOU DEPLOY YOU NEED TO CHANVE YOUR HTTP POST URL
+because you can only have one at a time instead of one for dev and one for prod.
+
+===============================================================
+=====================  =====================

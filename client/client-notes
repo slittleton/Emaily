@@ -253,3 +253,10 @@ import { reduxForm, Field } from 'redux-form';
   // handleSubmit is provided automatically by redux-form from connect-like function
 
 export default reduxForm({form: 'surveyForm'})(SurveyForm);
+
+========================================================
+============== witRouter ==============
+
+withRouter is part of react-router-dom. is allows access to the properties of the 
+history object and the closest <Route>'s match. It re-renders the component whenever 
+the route changes witht he same props as <Route> render props:{match, location, history}

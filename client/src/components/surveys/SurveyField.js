@@ -2,6 +2,8 @@
 
 import React from 'react'
 
+
+
 export default ({ input,label, meta: { error, touched } }) => {
   // console.log(meta); 
   // meta is aredux form object that shows info about form fields

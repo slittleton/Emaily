@@ -5,20 +5,12 @@ import { Link } from 'react-router-dom';
 import SurveyField from './SurveyField';
 import validateEmails from '../../utils/validateEmails';
 import _ from 'lodash';
-
-const FIELDS = [
-  {label: 'Survey Title', name: 'title' },
-  {label: 'Subject Line', name: 'subject' },
-  {label: 'Email Body', name: 'body' },
-  {label: 'Recipient List', name: 'emails' }
-];
-
+import formFields from './formFields';
 
 class SurveyForm extends Component {
 
-
 renderFields () {
-  return _.map(FIELDS, ({ label, name })=>{
+  return _.map(formFields, ({ label, name })=>{
     return (
     <Field
       key={name}
@@ -52,9 +44,9 @@ render() {
 function validate (values) { // values are coming from redux-form values
   const errors = {};
 
-  errors.emails = validateEmails(values.emails || '');
+  errors.recipients = validateEmails(values.recipients || '');
 
-  _.each(FIELDS, ({ name }) => {
+  _.each(formFields, ({ name }) => {
     // using lodash library _.each to iterate through FIELDS object for
     // form validation
     if(!values[name]) {
@@ -69,5 +61,7 @@ function validate (values) { // values are coming from redux-form values
 
 export default reduxForm({
   validate,
-  form: 'surveyForm'
+  form: 'surveyForm', //goes into redux state and is used in SurveyFormReview comment
+  destroyOnUnmount: false // keeps form data from being reset after submit 
+  // it can then be made available to the SurveyFormReview component
 })(SurveyForm);
