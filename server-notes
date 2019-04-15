@@ -632,4 +632,11 @@ WHEN YOU DEPLOY YOU NEED TO CHANVE YOUR HTTP POST URL
 because you can only have one at a time instead of one for dev and one for prod.
 
 ===============================================================
-=====================  =====================
+===================== Path Parser =====================
+
+npm install --save path-parser@2.0.2
+
+===============================================================
+===================== lodash =====================
+
+
